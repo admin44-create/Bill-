@@ -18,6 +18,13 @@ export const InvoiceRenderer: React.FC<InvoiceRendererProps> = ({
 }) => {
   const isThermal = paperSize === '58mm' || paperSize === '80mm';
 
+  // Effective business details (overridden per bill or fallback to merchant)
+  const businessName = invoice.businessName || merchant.businessName;
+  const businessAddress = invoice.businessAddress || merchant.address;
+  const businessMobile = invoice.businessMobile || merchant.mobile;
+  const businessEmail = invoice.businessEmail || merchant.email;
+  const logoUrl = invoice.logoUrl !== undefined && invoice.logoUrl !== '' ? invoice.logoUrl : merchant.logoUrl;
+
   // 58mm / 80mm Thermal Receipt Layout
   if (isThermal) {
     const is58 = paperSize === '58mm';
@@ -30,9 +37,16 @@ export const InvoiceRenderer: React.FC<InvoiceRendererProps> = ({
       >
         {/* Header */}
         <div className="text-center pb-2 border-b border-black border-dashed">
-          <div className="font-extrabold uppercase text-sm tracking-wide">{merchant.businessName}</div>
-          <div className="text-[10px] leading-tight text-gray-700 mt-0.5">{merchant.address}</div>
-          <div className="text-[10px] mt-0.5">Mob: {merchant.mobile}</div>
+          {logoUrl && (
+            <img
+              src={logoUrl}
+              alt={businessName}
+              className="w-10 h-10 object-contain mx-auto mb-1 rounded"
+            />
+          )}
+          <div className="font-extrabold uppercase text-sm tracking-wide">{businessName}</div>
+          <div className="text-[10px] leading-tight text-gray-700 mt-0.5">{businessAddress}</div>
+          <div className="text-[10px] mt-0.5">Mob: {businessMobile}</div>
           <div className="inline-block mt-1 px-1.5 py-0.5 text-[9px] font-bold border border-black uppercase">
             NON-GST BILL OF SUPPLY
           </div>
@@ -162,27 +176,27 @@ export const InvoiceRenderer: React.FC<InvoiceRendererProps> = ({
           <div className="border-b-2 border-amber-500 pb-5">
             <div className="flex items-start justify-between gap-4">
               <div className="flex items-start gap-4">
-                {merchant.logoUrl ? (
+                {logoUrl ? (
                   <img
-                    src={merchant.logoUrl}
-                    alt={merchant.businessName}
+                    src={logoUrl}
+                    alt={businessName}
                     className="w-16 h-16 object-contain rounded border border-amber-500/30 p-1"
                   />
                 ) : (
                   <div className="w-14 h-14 rounded-lg bg-[#0B1A30] border border-amber-500/40 flex items-center justify-center text-amber-400 font-extrabold text-xl shadow-md">
-                    {merchant.businessName.charAt(0)}
+                    {businessName.charAt(0)}
                   </div>
                 )}
                 <div>
                   <h1 className="text-2xl font-black tracking-tight text-[#0B1A30] font-['Space_Grotesk'] uppercase">
-                    {merchant.businessName}
+                    {businessName}
                   </h1>
                   <p className="text-xs text-slate-600 max-w-sm mt-0.5 leading-relaxed">
-                    {merchant.address}
+                    {businessAddress}
                   </p>
                   <div className="flex items-center gap-3 text-xs text-slate-700 mt-1 font-medium">
-                    <span>📞 {merchant.mobile}</span>
-                    {merchant.email && <span>✉️ {merchant.email}</span>}
+                    <span>📞 {businessMobile}</span>
+                    {businessEmail && <span>✉️ {businessEmail}</span>}
                   </div>
                 </div>
               </div>
@@ -318,7 +332,7 @@ export const InvoiceRenderer: React.FC<InvoiceRendererProps> = ({
                 <div className="flex items-center gap-3 pt-2 border-t border-slate-200">
                   <img
                     src={`https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${encodeURIComponent(
-                      `upi://pay?pa=${merchant.upiId}&pn=${encodeURIComponent(merchant.businessName)}&am=${invoice.dueAmount > 0 ? invoice.dueAmount : invoice.grandTotal}&cu=INR`
+                      `upi://pay?pa=${merchant.upiId}&pn=${encodeURIComponent(businessName)}&am=${invoice.dueAmount > 0 ? invoice.dueAmount : invoice.grandTotal}&cu=INR`
                     )}`}
                     alt="UPI Payment QR"
                     className="w-14 h-14 border border-slate-300 rounded p-1"
@@ -375,7 +389,7 @@ export const InvoiceRenderer: React.FC<InvoiceRendererProps> = ({
                   )}
                 </div>
                 <div className="w-48 border-t border-slate-400 pt-1 text-center">
-                  <div className="text-xs font-bold text-slate-800">For {merchant.businessName}</div>
+                  <div className="text-xs font-bold text-slate-800">For {businessName}</div>
                   <div className="text-[10px] text-slate-500 uppercase tracking-wider">Authorized Signatory</div>
                 </div>
               </div>
@@ -388,11 +402,20 @@ export const InvoiceRenderer: React.FC<InvoiceRendererProps> = ({
       {template === 'clean-minimal' && (
         <div className="space-y-6">
           <div className="flex justify-between items-start border-b border-slate-900 pb-4">
-            <div>
-              <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Bill of Supply (Non-GST)</div>
-              <h1 className="text-3xl font-extrabold text-slate-900 mt-1">{merchant.businessName}</h1>
-              <p className="text-xs text-slate-600 mt-1">{merchant.address}</p>
-              <p className="text-xs text-slate-600">Mobile: {merchant.mobile}</p>
+            <div className="flex items-start gap-4">
+              {logoUrl && (
+                <img
+                  src={logoUrl}
+                  alt={businessName}
+                  className="w-14 h-14 object-contain rounded border border-slate-300 p-1"
+                />
+              )}
+              <div>
+                <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Bill of Supply (Non-GST)</div>
+                <h1 className="text-3xl font-extrabold text-slate-900 mt-1">{businessName}</h1>
+                <p className="text-xs text-slate-600 mt-1">{businessAddress}</p>
+                <p className="text-xs text-slate-600">Mobile: {businessMobile}</p>
+              </div>
             </div>
             <div className="text-right">
               <div className="text-sm font-mono font-bold text-slate-900">#{invoice.invoiceNumber}</div>
@@ -489,11 +512,18 @@ export const InvoiceRenderer: React.FC<InvoiceRendererProps> = ({
       {(template === 'retail-slip' || template === 'corporate') && (
         <div className="space-y-6">
           <div className="text-center border-b pb-4">
+            {logoUrl && (
+              <img
+                src={logoUrl}
+                alt={businessName}
+                className="w-14 h-14 object-contain mx-auto mb-2 rounded border border-slate-200 p-1"
+              />
+            )}
             <div className="text-[11px] font-bold tracking-widest text-amber-600 uppercase">
               {template === 'corporate' ? 'CORPORATE NON-GST INVOICE' : 'RETAIL BILL OF SUPPLY'}
             </div>
-            <h1 className="text-2xl font-black text-[#0B1A30] mt-1">{merchant.businessName}</h1>
-            <p className="text-xs text-slate-600">{merchant.address} • Tel: {merchant.mobile}</p>
+            <h1 className="text-2xl font-black text-[#0B1A30] mt-1">{businessName}</h1>
+            <p className="text-xs text-slate-600">{businessAddress} • Tel: {businessMobile}</p>
           </div>
 
           <div className="flex justify-between text-xs bg-slate-100 p-3 rounded-lg">

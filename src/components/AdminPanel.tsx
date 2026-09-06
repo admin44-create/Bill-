@@ -724,9 +724,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           {selectedBillMerchant ? (
             <BillGenerator
               merchant={selectedBillMerchant}
+              onUpdateMerchant={() => {
+                refreshData();
+              }}
               onInvoiceCreated={(inv) => {
                 refreshData();
-                setGeneratedBillNotice(`Bill #${inv.invoiceNumber} for ₹${inv.grandTotal} generated and saved successfully under ${selectedBillMerchant.businessName}!`);
+                setGeneratedBillNotice(`Bill #${inv.invoiceNumber} for ₹${inv.grandTotal} generated and saved successfully under ${inv.businessName || selectedBillMerchant.businessName}!`);
                 if (onViewInvoice) {
                   onViewInvoice(inv, selectedBillMerchant);
                 }

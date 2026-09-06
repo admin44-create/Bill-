@@ -510,6 +510,10 @@ export default function App() {
             merchant={currentMerchant}
             existingInvoice={editingInvoice || undefined}
             duplicateFrom={duplicateInvoice || undefined}
+            onUpdateMerchant={(updated) => {
+              setActiveMerchantState(updated);
+              handleRefresh();
+            }}
             onSavedInvoice={(savedInv) => {
               handleRefresh();
               setModalInvoice(savedInv);

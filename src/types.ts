@@ -18,6 +18,11 @@ export interface Invoice {
   id: string;
   invoiceNumber: string;
   merchantId: string;
+  businessName?: string;
+  businessAddress?: string;
+  businessMobile?: string;
+  businessEmail?: string;
+  logoUrl?: string;
   date: string;
   time: string;
   customerId?: string;
