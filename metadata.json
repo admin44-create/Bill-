@@ -1,0 +1,6 @@
+{
+  "name": "MTCC BillPro",
+  "description": "Professional Non-GST Billing & Invoice Generator with multi-template A4, A5, 58mm & 80mm thermal receipts, merchant registration, and payment tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
