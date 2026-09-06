@@ -14,10 +14,14 @@ import {
   IndianRupee,
   Bell,
   Download,
-  Filter
+  Filter,
+  Package,
+  Boxes,
+  ShoppingBag
 } from 'lucide-react';
 import { Merchant, Invoice, Customer, SystemAnnouncement } from '../types';
 import { formatCurrency } from '../utils/numberToWords';
+import { computeMerchantStockSummary } from '../utils/storage';
 
 interface MerchantDashboardProps {
   merchant: Merchant;
@@ -51,6 +55,12 @@ export const MerchantDashboard: React.FC<MerchantDashboardProps> = ({
   const totalPaid = invoices.reduce((sum, inv) => sum + inv.paidAmount, 0);
   const totalDue = invoices.reduce((sum, inv) => sum + inv.dueAmount, 0);
   const totalCustomersCount = customers.length;
+
+  // Stock inventory metrics
+  const stockSummary = computeMerchantStockSummary(merchant.id);
+  const totalStockItems = stockSummary.length;
+  const totalStockValuation = stockSummary.reduce((acc, item) => acc + item.stockValue, 0);
+  const lowStockCount = stockSummary.filter((item) => item.status === 'LOW_STOCK' || item.status === 'OUT_OF_STOCK').length;
 
   // Filtered recent invoices
   const filteredInvoices = invoices
@@ -108,6 +118,15 @@ export const MerchantDashboard: React.FC<MerchantDashboardProps> = ({
         </div>
 
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={() => onNavigateTab('stock')}
+            className="py-3 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 font-bold text-sm border border-amber-500/30 transition-all flex items-center gap-2 cursor-pointer shadow-lg"
+          >
+            <Package className="w-4 h-4" />
+            <span>Stock & Purchases</span>
+          </button>
+
           <button
             type="button"
             onClick={onCreateBill}
@@ -216,6 +235,40 @@ export const MerchantDashboard: React.FC<MerchantDashboardProps> = ({
           </button>
         </div>
       )}
+
+      {/* Stock & Purchases Overview Bar */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-lg">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+            <Package className="w-5 h-5" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-extrabold text-white">Stock & Inventory Summary (স্টক ও ক্রয়-বিক্রয়)</span>
+              <span className="text-[10px] bg-amber-500/20 text-amber-300 px-2 py-0.5 rounded-full font-bold">
+                {totalStockItems} Products
+              </span>
+              {lowStockCount > 0 && (
+                <span className="text-[10px] bg-rose-500/20 text-rose-300 px-2 py-0.5 rounded-full font-bold">
+                  {lowStockCount} Low Stock
+                </span>
+              )}
+            </div>
+            <div className="text-[11px] text-slate-400 mt-0.5">
+              Total Stock Valuation: <b className="text-emerald-400 font-mono">{formatCurrency(totalStockValuation)}</b> • Stock Summary, Purchases & Sales
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onNavigateTab('stock')}
+          className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs shadow-md shadow-amber-500/10 transition-colors cursor-pointer flex items-center gap-1.5"
+        >
+          <span>Open Stock & Purchase</span>
+          <ArrowUpRight className="w-3.5 h-3.5" />
+        </button>
+      </div>
 
       {/* Recent Invoices Section */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl shadow-xl overflow-hidden">

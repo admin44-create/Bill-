@@ -13,7 +13,7 @@ import {
   Sparkles 
 } from 'lucide-react';
 import { Merchant } from '../types';
-import { getAllMerchants, verifyAdminPassword } from '../utils/storage';
+import { getAllMerchants, verifyAdminPassword, getWebsiteConfig } from '../utils/storage';
 import { MtccLogo } from './MtccLogo';
 
 interface MerchantAuthModalProps {
@@ -62,6 +62,8 @@ export const MerchantAuthModal: React.FC<MerchantAuthModalProps> = ({
   // Reset State
   const [resetIdentifier, setResetIdentifier] = useState('');
   const [resetSuccess, setResetSuccess] = useState(false);
+
+  const regFee = getWebsiteConfig().registrationFee || 19;
 
   if (!isOpen) return null;
 
@@ -173,7 +175,7 @@ export const MerchantAuthModal: React.FC<MerchantAuthModalProps> = ({
                 : 'border-transparent text-slate-400 hover:text-white'
             }`}
           >
-            Register (₹99)
+            Register (₹{regFee})
           </button>
           <button
             type="button"
@@ -205,7 +207,7 @@ export const MerchantAuthModal: React.FC<MerchantAuthModalProps> = ({
             {/* Promo Box */}
             <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 space-y-1.5 text-xs text-amber-200">
               <div className="font-extrabold text-amber-300 text-sm flex items-center gap-1.5">
-                <span>🔥 Merchant Registration – Only ₹99</span>
+                <span>🔥 Merchant Registration – Only ₹{regFee}</span>
               </div>
               <div className="grid grid-cols-3 gap-1 pt-1 text-[11px] font-semibold text-slate-300">
                 <span>✅ One-Time Payment</span>
@@ -306,7 +308,7 @@ export const MerchantAuthModal: React.FC<MerchantAuthModalProps> = ({
               type="submit"
               className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-black text-sm shadow-xl shadow-amber-500/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2 cursor-pointer mt-4"
             >
-              <span>Pay ₹99 & Activate Merchant Account</span>
+              <span>Pay ₹{regFee} & Activate Merchant Account</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>

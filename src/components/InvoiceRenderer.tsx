@@ -25,6 +25,39 @@ export const InvoiceRenderer: React.FC<InvoiceRendererProps> = ({
   const businessEmail = invoice.businessEmail || merchant.email;
   const logoUrl = invoice.logoUrl !== undefined && invoice.logoUrl !== '' ? invoice.logoUrl : merchant.logoUrl;
 
+  // Effective authorized signature details
+  const showSignature = !invoice.hideSignature;
+  const signatureUrl = invoice.signatureUrl !== undefined && invoice.signatureUrl !== '' ? invoice.signatureUrl : merchant.signatureUrl;
+  const signatureText = invoice.signatureText !== undefined && invoice.signatureText !== '' ? invoice.signatureText : (merchant.signatureText || merchant.ownerName);
+  const signatoryTitle = invoice.signatoryTitle || merchant.signatoryTitle || 'Authorized Signatory';
+
+  const renderAuthorizedSignatoryBlock = (alignRight: boolean = true) => {
+    if (!showSignature) return null;
+    return (
+      <div className={`pt-4 flex flex-col ${alignRight ? 'items-end text-right' : 'items-center text-center'}`}>
+        <div className="h-14 flex items-end justify-center min-w-[140px]">
+          {signatureUrl ? (
+            <img 
+              src={signatureUrl} 
+              alt="Authorized Signature" 
+              className="max-h-12 max-w-[150px] object-contain select-none" 
+            />
+          ) : signatureText ? (
+            <span className="font-serif italic font-bold text-base text-slate-800 tracking-wide">
+              {signatureText}
+            </span>
+          ) : (
+            <div className="text-xs text-slate-400 italic">Signature</div>
+          )}
+        </div>
+        <div className="w-48 border-t border-slate-400 pt-1">
+          <div className="text-xs font-bold text-slate-900 leading-tight">For {businessName}</div>
+          <div className="text-[10px] text-slate-600 uppercase tracking-wider font-semibold">{signatoryTitle}</div>
+        </div>
+      </div>
+    );
+  };
+
   // 58mm / 80mm Thermal Receipt Layout
   if (isThermal) {
     const is58 = paperSize === '58mm';
@@ -146,6 +179,20 @@ export const InvoiceRenderer: React.FC<InvoiceRendererProps> = ({
               />
             </div>
             <div className="text-[8px] mt-0.5">{merchant.upiId}</div>
+          </div>
+        )}
+
+        {/* Authorized Signature in Thermal Receipt */}
+        {showSignature && (
+          <div className="py-2 text-center border-b border-black border-dashed">
+            {signatureUrl ? (
+              <img src={signatureUrl} alt="Signature" className="max-h-8 max-w-[110px] mx-auto object-contain mb-1" />
+            ) : signatureText ? (
+              <div className="font-serif italic text-[10px] font-bold text-black">{signatureText}</div>
+            ) : null}
+            <div className="border-t border-black border-dotted pt-0.5 text-[8px] uppercase tracking-wider font-bold">
+              For {businessName} • {signatoryTitle}
+            </div>
           </div>
         )}
 
@@ -376,23 +423,7 @@ export const InvoiceRenderer: React.FC<InvoiceRendererProps> = ({
               </div>
 
               {/* Authorized Signature */}
-              <div className="pt-4 text-right flex flex-col items-end">
-                <div className="h-14 flex items-end justify-center">
-                  {merchant.signatureUrl ? (
-                    <img src={merchant.signatureUrl} alt="Signature" className="max-h-12 max-w-[150px] object-contain" />
-                  ) : merchant.signatureText ? (
-                    <span className="font-serif italic font-bold text-base text-slate-800">
-                      {merchant.signatureText}
-                    </span>
-                  ) : (
-                    <div className="text-xs text-slate-400 italic">Authorized Signatory</div>
-                  )}
-                </div>
-                <div className="w-48 border-t border-slate-400 pt-1 text-center">
-                  <div className="text-xs font-bold text-slate-800">For {businessName}</div>
-                  <div className="text-[10px] text-slate-500 uppercase tracking-wider">Authorized Signatory</div>
-                </div>
-              </div>
+              {renderAuthorizedSignatoryBlock(true)}
             </div>
           </div>
         </div>
@@ -505,6 +536,9 @@ export const InvoiceRenderer: React.FC<InvoiceRendererProps> = ({
               )}
             </div>
           </div>
+
+          {/* Clean Minimal Authorized Signature */}
+          {renderAuthorizedSignatoryBlock(true)}
         </div>
       )}
 
@@ -584,6 +618,9 @@ export const InvoiceRenderer: React.FC<InvoiceRendererProps> = ({
               )}
             </div>
           </div>
+
+          {/* Retail & Corporate Authorized Signature */}
+          {renderAuthorizedSignatoryBlock(true)}
         </div>
       )}
 

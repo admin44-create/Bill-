@@ -59,7 +59,7 @@ export const PaymentGatewayModal: React.FC<PaymentGatewayModalProps> = ({
 
   const adminUpiId = websiteConfig.adminUpiId || 'mtccbillpro@icici';
   const adminPayee = websiteConfig.adminUpiPayeeName || 'MTCC BillPro Payments';
-  const regFee = amount || websiteConfig.registrationFee || 99;
+  const regFee = amount || websiteConfig.registrationFee || 19;
 
   // Build UPI URI and generate scannable QR code
   useEffect(() => {

@@ -22,11 +22,22 @@ import {
   ChevronDown,
   ChevronUp,
   Mail,
-  CheckCircle2
+  CheckCircle2,
+  PenTool,
+  Boxes,
+  Layers,
+  FileCheck,
+  Package
 } from 'lucide-react';
-import { Invoice, InvoiceItem, Merchant, Customer, PaymentStatus, PaymentMode } from '../types';
+import { Invoice, InvoiceItem, Merchant, Customer, PaymentStatus, PaymentMode, StockItem } from '../types';
 import { numberToIndianWords, formatCurrency } from '../utils/numberToWords';
-import { saveMerchantInvoice, saveMerchantCustomer, getMerchantCustomers, saveMerchant } from '../utils/storage';
+import { 
+  saveMerchantInvoice, 
+  saveMerchantCustomer, 
+  getMerchantCustomers, 
+  saveMerchant,
+  getMerchantStockItems
+} from '../utils/storage';
 import { InvoiceRenderer } from './InvoiceRenderer';
 
 interface BillGeneratorProps {
@@ -133,13 +144,107 @@ export const BillGenerator: React.FC<BillGeneratorProps> = ({
     initialInvoice?.terms || merchant.defaultTerms || '1. Non-GST Bill of Supply.\n2. Goods once sold are non-refundable.'
   );
 
-  // Load merchant customers
+  // Authority Signature State (Customizable per bill or save to store profile)
+  const [includeSignature, setIncludeSignature] = useState(
+    sourceInvoice?.hideSignature !== undefined ? !sourceInvoice.hideSignature : true
+  );
+  const [signatureUrl, setSignatureUrl] = useState(
+    sourceInvoice?.signatureUrl !== undefined ? sourceInvoice.signatureUrl : (merchant.signatureUrl || '')
+  );
+  const [signatureText, setSignatureText] = useState(
+    sourceInvoice?.signatureText !== undefined ? sourceInvoice.signatureText : (merchant.signatureText || merchant.ownerName || '')
+  );
+  const [signatoryTitle, setSignatoryTitle] = useState(
+    sourceInvoice?.signatoryTitle || merchant.signatoryTitle || 'Authorized Signatory'
+  );
+  const [signatureMode, setSignatureMode] = useState<'text' | 'draw' | 'upload'>('text');
+  const [isSignatureOpen, setIsSignatureOpen] = useState(true);
+  const signatureInputRef = useRef<HTMLInputElement>(null);
+  const sigCanvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+
+  // Stock inventory catalog for item auto-suggestions
+  const [stockCatalog, setStockCatalog] = useState<StockItem[]>([]);
+  const [showStockDropdown, setShowStockDropdown] = useState(false);
+
+  // Load merchant customers and stock catalog
   useEffect(() => {
     if (merchant.id) {
       const list = getMerchantCustomers(merchant.id);
       setCustomers(list);
+      const stock = getMerchantStockItems(merchant.id);
+      setStockCatalog(stock);
     }
   }, [merchant.id]);
+
+  // Signature Drawing Handlers
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const canvas = sigCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    setIsDrawing(true);
+    const rect = canvas.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    ctx.beginPath();
+    ctx.moveTo(clientX - rect.left, clientY - rect.top);
+  };
+
+  const drawSignature = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    e.preventDefault();
+    const canvas = sigCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    const rect = canvas.getBoundingClientRect();
+    const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineTo(clientX - rect.left, clientY - rect.top);
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    if (!isDrawing) return;
+    setIsDrawing(false);
+    const canvas = sigCanvasRef.current;
+    if (canvas) {
+      const dataUrl = canvas.toDataURL('image/png');
+      setSignatureUrl(dataUrl);
+    }
+  };
+
+  const clearDrawingCanvas = () => {
+    const canvas = sigCanvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setSignatureUrl('');
+  };
+
+  const handleSignatureFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert('Please choose a signature or stamp image smaller than 2MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        if (dataUrl) {
+          setSignatureUrl(dataUrl);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   // Sync with merchant details if changed outside
   useEffect(() => {
@@ -227,6 +332,16 @@ export const BillGenerator: React.FC<BillGeneratorProps> = ({
   const handleItemChange = (index: number, field: keyof InvoiceItem, value: any) => {
     const updated = [...items];
     const current = { ...updated[index], [field]: value };
+
+    // If item name matches stock item, auto-fill rate
+    if (field === 'name') {
+      const match = stockCatalog.find(
+        (s) => s.name.trim().toLowerCase() === String(value).trim().toLowerCase()
+      );
+      if (match && match.sellingRate > 0) {
+        current.rate = match.sellingRate;
+      }
+    }
 
     const qty = field === 'quantity' ? Number(value) : current.quantity;
     const rate = field === 'rate' ? Number(value) : current.rate;
@@ -345,6 +460,10 @@ export const BillGenerator: React.FC<BillGeneratorProps> = ({
       terms,
       template: merchant.template || 'navy-gold',
       paperSize: merchant.paperSize || 'A4',
+      signatureUrl: includeSignature ? signatureUrl.trim() : '',
+      signatureText: includeSignature ? signatureText.trim() : '',
+      signatoryTitle: includeSignature ? signatoryTitle.trim() : '',
+      hideSignature: !includeSignature,
       createdAt: initialInvoice ? initialInvoice.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       isDraft,
@@ -362,6 +481,9 @@ export const BillGenerator: React.FC<BillGeneratorProps> = ({
           mobile: businessMobile.trim() || merchant.mobile,
           email: businessEmail.trim() || merchant.email,
           logoUrl: logoUrl.trim(),
+          signatureUrl: includeSignature ? signatureUrl.trim() : merchant.signatureUrl,
+          signatureText: includeSignature ? signatureText.trim() : merchant.signatureText,
+          signatoryTitle: includeSignature ? signatoryTitle.trim() : merchant.signatoryTitle,
         };
         saveMerchant(updatedMerchant);
         if (onUpdateMerchant) {
@@ -433,6 +555,10 @@ export const BillGenerator: React.FC<BillGeneratorProps> = ({
     terms,
     template: merchant.template || 'navy-gold',
     paperSize: merchant.paperSize || 'A4',
+    signatureUrl: includeSignature ? signatureUrl.trim() : '',
+    signatureText: includeSignature ? signatureText.trim() : '',
+    signatoryTitle: includeSignature ? signatoryTitle.trim() : '',
+    hideSignature: !includeSignature,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
@@ -862,8 +988,49 @@ export const BillGenerator: React.FC<BillGeneratorProps> = ({
                 <span className="text-[11px] text-slate-400">Non-GST line items with instant calculations</span>
               </div>
 
-              {/* Quick Preset Buttons */}
+              {/* Quick Preset Buttons & Stock Catalog Picker */}
               <div className="hidden sm:flex items-center gap-1.5">
+                {stockCatalog.length > 0 && (
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setShowStockDropdown(!showStockDropdown)}
+                      className="px-2.5 py-1 bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 text-[11px] font-bold rounded-lg border border-amber-500/30 flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <Package className="w-3.5 h-3.5" />
+                      <span>Stock Catalog ({stockCatalog.length})</span>
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+
+                    {showStockDropdown && (
+                      <div className="absolute right-0 top-full mt-2 w-72 bg-slate-900 border border-slate-700 rounded-2xl shadow-2xl p-2 z-30 max-h-60 overflow-y-auto space-y-1">
+                        <div className="text-[10px] uppercase font-bold text-slate-400 px-2 py-1 border-b border-slate-800">
+                          Select Product to Add
+                        </div>
+                        {stockCatalog.map((stock) => (
+                          <button
+                            key={stock.id}
+                            type="button"
+                            onClick={() => {
+                              handleQuickAdd(stock.name, stock.sellingRate || stock.purchaseRate || 100);
+                              setShowStockDropdown(false);
+                            }}
+                            className="w-full text-left p-2 rounded-xl hover:bg-slate-800 text-xs text-white flex justify-between items-center transition-colors cursor-pointer"
+                          >
+                            <div className="truncate mr-2">
+                              <div className="font-bold text-amber-300 truncate">{stock.name}</div>
+                              <div className="text-[10px] text-slate-400">{stock.category} • Opening: {stock.openingStock} {stock.unit}</div>
+                            </div>
+                            <div className="text-right font-mono font-bold text-emerald-400 whitespace-nowrap">
+                              ₹{stock.sellingRate}
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <button
                   type="button"
                   onClick={() => handleQuickAdd('Consultation / Service Charge', 500)}
@@ -881,6 +1048,15 @@ export const BillGenerator: React.FC<BillGeneratorProps> = ({
               </div>
             </div>
 
+            {/* Datalist for Stock Products Auto-Suggest */}
+            <datalist id="stock-products-list">
+              {stockCatalog.map((s) => (
+                <option key={s.id} value={s.name}>
+                  ₹{s.sellingRate} ({s.category})
+                </option>
+              ))}
+            </datalist>
+
             {/* Line items list */}
             <div className="space-y-3">
               {items.map((item, index) => (
@@ -893,6 +1069,7 @@ export const BillGenerator: React.FC<BillGeneratorProps> = ({
                     <label className="text-[10px] text-slate-400 font-medium block sm:hidden">Item Name</label>
                     <input
                       type="text"
+                      list="stock-products-list"
                       value={item.name}
                       onChange={(e) => handleItemChange(index, 'name', e.target.value)}
                       placeholder="Product or service description"
@@ -994,6 +1171,232 @@ export const BillGenerator: React.FC<BillGeneratorProps> = ({
                 />
               </div>
             </div>
+          </div>
+
+          {/* Authority Signature & Signatory Section (অথরিটি সিগনেচার) */}
+          <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                  <PenTool className="w-4 h-4" />
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                    Authority Signature (অথরিটি সিগনেচার)
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Official signature, company stamp & signatory designation on bill
+                  </p>
+                </div>
+              </div>
+
+              {/* Include Signature Toggle */}
+              <label className="flex items-center gap-2 cursor-pointer select-none bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 hover:border-slate-700 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={includeSignature}
+                  onChange={(e) => setIncludeSignature(e.target.checked)}
+                  className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500 border-slate-700 bg-slate-900"
+                />
+                <span className="text-xs font-semibold text-slate-300">
+                  {includeSignature ? 'Signature On' : 'Signature Off'}
+                </span>
+              </label>
+            </div>
+
+            {includeSignature && (
+              <div className="space-y-4 pt-2 border-t border-slate-800/80">
+                {/* Mode Selector Tabs: Text, Draw, Upload */}
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] text-slate-400 font-medium">Signature Style:</span>
+                  <div className="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800">
+                    <button
+                      type="button"
+                      onClick={() => setSignatureMode('text')}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                        signatureMode === 'text'
+                          ? 'bg-amber-500 text-slate-950 shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      Text Script
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSignatureMode('draw')}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                        signatureMode === 'draw'
+                          ? 'bg-amber-500 text-slate-950 shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      Draw Pad
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSignatureMode('upload')}
+                      className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                        signatureMode === 'upload'
+                          ? 'bg-amber-500 text-slate-950 shadow-sm'
+                          : 'text-slate-400 hover:text-white'
+                      }`}
+                    >
+                      Upload Stamp / Seal
+                    </button>
+                  </div>
+                </div>
+
+                {/* Text Signature Mode */}
+                {signatureMode === 'text' && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                    <div>
+                      <label className="text-[11px] text-slate-400 font-medium block mb-1">
+                        Signatory Name / Signature Text (নাম / টেক্সট)
+                      </label>
+                      <input
+                        type="text"
+                        value={signatureText}
+                        onChange={(e) => setSignatureText(e.target.value)}
+                        placeholder="e.g. Rajesh Sharma"
+                        className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500"
+                      />
+                    </div>
+                    <div className="bg-slate-950 border border-slate-800 rounded-xl p-3 flex flex-col items-center justify-center">
+                      <span className="text-[10px] uppercase font-bold text-slate-500 mb-1">Stylized Preview</span>
+                      <span className="font-serif italic font-bold text-xl text-amber-300 tracking-wider">
+                        {signatureText.trim() || businessName.trim() || 'Authorized Person'}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Draw Signature Mode */}
+                {signatureMode === 'draw' && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[11px] text-slate-400">
+                      <span>Draw signature using finger or mouse on the pad below:</span>
+                      <button
+                        type="button"
+                        onClick={clearDrawingCanvas}
+                        className="text-xs text-rose-400 hover:text-rose-300 flex items-center gap-1 font-semibold cursor-pointer"
+                      >
+                        <RotateCcw className="w-3 h-3" /> Clear Pad
+                      </button>
+                    </div>
+
+                    <div className="bg-white rounded-xl border border-slate-300 p-2 flex items-center justify-center overflow-hidden">
+                      <canvas
+                        ref={sigCanvasRef}
+                        width={360}
+                        height={110}
+                        onMouseDown={startDrawing}
+                        onMouseMove={drawSignature}
+                        onMouseUp={stopDrawing}
+                        onMouseLeave={stopDrawing}
+                        onTouchStart={startDrawing}
+                        onTouchMove={drawSignature}
+                        onTouchEnd={stopDrawing}
+                        className="touch-none cursor-crosshair bg-white w-full max-w-sm rounded"
+                      />
+                    </div>
+                    {signatureUrl && (
+                      <p className="text-[10px] text-emerald-400 font-medium flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Signature captured successfully
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Upload Image / Stamp Mode */}
+                {signatureMode === 'upload' && (
+                  <div className="space-y-3">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                      <input
+                        ref={signatureInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleSignatureFileUpload}
+                        className="hidden"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => signatureInputRef.current?.click()}
+                        className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer shadow-md shadow-amber-500/10"
+                      >
+                        <Upload className="w-4 h-4" />
+                        <span>Upload Signature or Stamp (PNG / JPG)</span>
+                      </button>
+
+                      {signatureUrl && (
+                        <button
+                          type="button"
+                          onClick={() => setSignatureUrl('')}
+                          className="px-3 py-2 bg-slate-800 hover:bg-rose-950 hover:text-rose-300 text-slate-300 text-xs rounded-xl transition-colors cursor-pointer"
+                        >
+                          Remove Stamp
+                        </button>
+                      )}
+                    </div>
+
+                    {signatureUrl && (
+                      <div className="flex items-center gap-3 bg-slate-950 p-2.5 rounded-xl border border-slate-800 max-w-md">
+                        <img
+                          src={signatureUrl}
+                          alt="Signature Preview"
+                          className="h-12 max-w-[140px] object-contain bg-white/10 p-1 rounded border border-slate-700"
+                        />
+                        <div className="text-[11px] text-slate-400">
+                          <span className="text-emerald-400 font-bold block">Stamp / Signature Loaded</span>
+                          Will be stamped neatly at the bottom right of the bill.
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Common Signatory Title / Designation */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-800">
+                  <div>
+                    <label className="text-[11px] text-slate-400 font-medium block mb-1">
+                      Signatory Designation / Title (পদবী)
+                    </label>
+                    <input
+                      type="text"
+                      value={signatoryTitle}
+                      onChange={(e) => setSignatoryTitle(e.target.value)}
+                      placeholder="e.g. Authorized Signatory, Proprietor, Manager"
+                      className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"
+                    />
+                  </div>
+
+                  {/* Stamp Card Preview in Bill */}
+                  <div className="bg-slate-950/80 border border-slate-800 rounded-xl p-3 text-center flex flex-col items-center justify-center">
+                    <span className="text-[10px] uppercase font-bold text-slate-500 mb-1">
+                      Stamp Box on Bill
+                    </span>
+                    <div className="w-full max-w-[200px] border-t border-slate-700 pt-1 text-center">
+                      {signatureUrl ? (
+                        <img
+                          src={signatureUrl}
+                          alt="Sig"
+                          className="h-9 mx-auto object-contain mb-1"
+                        />
+                      ) : (
+                        <div className="font-serif italic font-bold text-amber-300 text-xs mb-1">
+                          {signatureText.trim() || 'Authority Signature'}
+                        </div>
+                      )}
+                      <div className="text-[10px] font-bold text-slate-300 uppercase tracking-tight">
+                        For {businessName.trim() || 'Your Business'}
+                      </div>
+                      <div className="text-[9px] text-slate-400 font-medium">
+                        {signatoryTitle.trim() || 'Authorized Signatory'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

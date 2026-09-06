@@ -15,7 +15,7 @@ export function buildUpiUri({ upiId, payeeName, amount, note }: UpiParams): stri
   const cleanUpi = upiId.trim();
   const cleanName = payeeName.trim() || 'MTCC BillPro Admin';
   const cleanNote = (note || 'MTCC Registration Fee').trim();
-  const formattedAmount = Number(amount || 99).toFixed(2);
+  const formattedAmount = Number(amount || 19).toFixed(2);
 
   const params = new URLSearchParams();
   params.set('pa', cleanUpi);

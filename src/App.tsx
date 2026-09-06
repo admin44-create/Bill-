@@ -14,7 +14,8 @@ import {
   HelpCircle,
   Play,
   ArrowRight,
-  ExternalLink
+  ExternalLink,
+  Package
 } from 'lucide-react';
 import { 
   Merchant, 
@@ -40,6 +41,7 @@ import { MerchantDashboard } from './components/MerchantDashboard';
 import { BillGenerator } from './components/BillGenerator';
 import { InvoicesList } from './components/InvoicesList';
 import { CustomerManagement } from './components/CustomerManagement';
+import { StockAndInventory } from './components/StockAndInventory';
 import { BusinessSettings } from './components/BusinessSettings';
 import { AdminPanel } from './components/AdminPanel';
 import { MerchantAuthModal } from './components/MerchantAuthModal';
@@ -263,6 +265,19 @@ export default function App() {
 
               <button
                 type="button"
+                onClick={() => setCurrentView('stock')}
+                className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  currentView === 'stock'
+                    ? 'bg-amber-500/15 text-amber-300 border border-amber-500/30 shadow-sm'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                }`}
+              >
+                <Package className="w-4 h-4" />
+                <span>Stock & Purchases</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setCurrentView('settings')}
                 className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
                   currentView === 'settings'
@@ -284,7 +299,7 @@ export default function App() {
                 <div className="hidden xl:flex items-center gap-2 bg-slate-900 border border-slate-800 py-1.5 px-3 rounded-xl text-xs">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
                   <span className="font-bold text-white max-w-[150px] truncate">{currentMerchant.businessName}</span>
-                  <span className="text-[10px] text-amber-400 font-mono">₹99 Verified</span>
+                  <span className="text-[10px] text-amber-400 font-mono">₹{websiteConfig.registrationFee || 19} Verified</span>
                 </div>
 
                 <button
@@ -399,6 +414,15 @@ export default function App() {
                   >
                     <Users className="w-4 h-4 text-purple-400" />
                     <span>Customers</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => { setCurrentView('stock'); setMobileMenuOpen(false); }}
+                    className="p-2.5 rounded-xl bg-slate-900 text-xs font-bold text-slate-200 text-left flex items-center gap-2"
+                  >
+                    <Package className="w-4 h-4 text-amber-400" />
+                    <span>Stock & Purchases</span>
                   </button>
 
                   <button
@@ -556,6 +580,19 @@ export default function App() {
             invoices={invoices}
             onViewInvoice={(inv) => setModalInvoice(inv)}
             onRefresh={handleRefresh}
+          />
+        )}
+
+        {/* VIEW: STOCK, PURCHASES & SALES SUMMARY */}
+        {currentView === 'stock' && currentMerchant && (
+          <StockAndInventory
+            merchant={currentMerchant}
+            invoices={invoices}
+            onCreateBill={() => {
+              setEditingInvoice(null);
+              setDuplicateInvoice(null);
+              setCurrentView('create-bill');
+            }}
           />
         )}
 

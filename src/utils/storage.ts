@@ -1,4 +1,15 @@
-import { Merchant, Invoice, Customer, SystemAnnouncement, SystemActivity, WebsiteConfig } from '../types';
+import { 
+  Merchant, 
+  Invoice, 
+  Customer, 
+  SystemAnnouncement, 
+  SystemActivity, 
+  WebsiteConfig,
+  Purchase,
+  PurchaseItem,
+  StockItem,
+  StockSummaryRecord
+} from '../types';
 
 const STORAGE_KEYS = {
   MERCHANTS: 'mtcc_merchants',
@@ -259,6 +270,180 @@ const DEFAULT_ACTIVITY: SystemActivity[] = [
   }
 ];
 
+const DEFAULT_SEED_STOCK_ITEMS: StockItem[] = [
+  {
+    id: 'STK-1',
+    merchantId: 'MTCC-M-74891',
+    name: 'Wireless Bluetooth Headphones (Boat Bassheads)',
+    category: 'Audio & Sound',
+    unit: 'Pcs',
+    openingStock: 25,
+    minStockAlert: 5,
+    purchaseRate: 1650,
+    sellingRate: 2400,
+    locationOrRack: 'Rack A-2',
+    notes: 'Fast moving item with 1-year warranty',
+    createdAt: '2026-08-15T10:30:00.000Z',
+    updatedAt: '2026-08-15T10:30:00.000Z',
+  },
+  {
+    id: 'STK-2',
+    merchantId: 'MTCC-M-74891',
+    name: 'Fast Charger 65W GaN Type-C Adapter',
+    category: 'Mobile Accessories',
+    unit: 'Pcs',
+    openingStock: 18,
+    minStockAlert: 6,
+    purchaseRate: 980,
+    sellingRate: 1550,
+    locationOrRack: 'Shelf C-1',
+    notes: 'Compatible with laptops and phones',
+    createdAt: '2026-08-15T10:30:00.000Z',
+    updatedAt: '2026-08-15T10:30:00.000Z',
+  },
+  {
+    id: 'STK-3',
+    merchantId: 'MTCC-M-74891',
+    name: 'High Speed HDMI Cable 4K 2-Meter',
+    category: 'Cables & Connectors',
+    unit: 'Pcs',
+    openingStock: 30,
+    minStockAlert: 8,
+    purchaseRate: 220,
+    sellingRate: 450,
+    locationOrRack: 'Bin 4',
+    notes: 'Braided gold-plated connectors',
+    createdAt: '2026-08-15T10:30:00.000Z',
+    updatedAt: '2026-08-15T10:30:00.000Z',
+  },
+  {
+    id: 'STK-4',
+    merchantId: 'MTCC-M-74891',
+    name: 'Smart LED Desk Lamp (Warm/Cool Dimmable)',
+    category: 'Smart Home',
+    unit: 'Pcs',
+    openingStock: 12,
+    minStockAlert: 4,
+    purchaseRate: 1100,
+    sellingRate: 1850,
+    locationOrRack: 'Rack B-1',
+    notes: 'Touch controlled with USB power output',
+    createdAt: '2026-08-15T10:30:00.000Z',
+    updatedAt: '2026-08-15T10:30:00.000Z',
+  },
+  {
+    id: 'STK-5',
+    merchantId: 'MTCC-M-74891',
+    name: 'CCTV Camera 4-Channel DVR Setup & Installation',
+    category: 'Security Systems',
+    unit: 'Set',
+    openingStock: 5,
+    minStockAlert: 2,
+    purchaseRate: 9200,
+    sellingRate: 13500,
+    locationOrRack: 'Warehouse Main',
+    notes: 'Includes 4 HD Night-Vision Cameras + 1TB Hard Disk',
+    createdAt: '2026-08-15T10:30:00.000Z',
+    updatedAt: '2026-08-15T10:30:00.000Z',
+  },
+  {
+    id: 'STK-6',
+    merchantId: 'MTCC-M-74891',
+    name: 'USB-C to Lightning Braided Cable 1.5M',
+    category: 'Mobile Accessories',
+    unit: 'Pcs',
+    openingStock: 20,
+    minStockAlert: 5,
+    purchaseRate: 190,
+    sellingRate: 399,
+    locationOrRack: 'Shelf C-2',
+    notes: 'MFi certified equivalent high durability',
+    createdAt: '2026-08-15T10:30:00.000Z',
+    updatedAt: '2026-08-15T10:30:00.000Z',
+  }
+];
+
+const DEFAULT_SEED_PURCHASES: Purchase[] = [
+  {
+    id: 'PUR-DEMO-101',
+    purchaseNumber: 'PUR-WH-8821',
+    merchantId: 'MTCC-M-74891',
+    supplierName: 'SuperTech Wholesale Distributorship',
+    supplierMobile: '+91 98200 44556',
+    supplierAddress: 'Shop 102, Electronics Market, Pune',
+    date: '2026-08-28',
+    time: '11:30',
+    items: [
+      {
+        id: 'p-item-1',
+        name: 'Wireless Bluetooth Headphones (Boat Bassheads)',
+        category: 'Audio & Sound',
+        quantity: 15,
+        unit: 'Pcs',
+        purchaseRate: 1650,
+        total: 24750,
+        suggestedSellingRate: 2400,
+      },
+      {
+        id: 'p-item-2',
+        name: 'Fast Charger 65W GaN Type-C Adapter',
+        category: 'Mobile Accessories',
+        quantity: 10,
+        unit: 'Pcs',
+        purchaseRate: 980,
+        total: 9800,
+        suggestedSellingRate: 1550,
+      }
+    ],
+    totalAmount: 34550,
+    paidAmount: 34550,
+    dueAmount: 0,
+    paymentStatus: 'PAID',
+    paymentMode: 'BANK_TRANSFER',
+    notes: 'Bulk purchase invoice settled via NEFT transfer.',
+    createdAt: '2026-08-28T11:30:00.000Z',
+  },
+  {
+    id: 'PUR-DEMO-102',
+    purchaseNumber: 'PUR-APX-304',
+    merchantId: 'MTCC-M-74891',
+    supplierName: 'Apex Cables & Tech Components',
+    supplierMobile: '+91 97650 11990',
+    supplierAddress: 'Plot 18, Industrial Estate, Chakan, Pune',
+    date: '2026-09-02',
+    time: '14:20',
+    items: [
+      {
+        id: 'p-item-3',
+        name: 'High Speed HDMI Cable 4K 2-Meter',
+        category: 'Cables & Connectors',
+        quantity: 20,
+        unit: 'Pcs',
+        purchaseRate: 220,
+        total: 4400,
+        suggestedSellingRate: 450,
+      },
+      {
+        id: 'p-item-4',
+        name: 'CCTV Camera 4-Channel DVR Setup & Installation',
+        category: 'Security Systems',
+        quantity: 3,
+        unit: 'Set',
+        purchaseRate: 9200,
+        total: 27600,
+        suggestedSellingRate: 13500,
+      }
+    ],
+    totalAmount: 32000,
+    paidAmount: 20000,
+    dueAmount: 12000,
+    paymentStatus: 'PARTIAL',
+    paymentMode: 'UPI',
+    notes: 'Advance ₹20,000 paid via UPI. Remaining ₹12,000 due next week.',
+    createdAt: '2026-09-02T14:20:00.000Z',
+  }
+];
+
 // Helper to initialize seed data if missing
 function initializeStorage() {
   if (typeof window === 'undefined') return;
@@ -273,6 +458,14 @@ function initializeStorage() {
   const sharmaCustKey = `mtcc_customers_MTCC-M-74891`;
   if (!localStorage.getItem(sharmaCustKey)) {
     localStorage.setItem(sharmaCustKey, JSON.stringify(DEFAULT_SEED_CUSTOMERS));
+  }
+  const sharmaStockKey = `mtcc_stock_MTCC-M-74891`;
+  if (!localStorage.getItem(sharmaStockKey)) {
+    localStorage.setItem(sharmaStockKey, JSON.stringify(DEFAULT_SEED_STOCK_ITEMS));
+  }
+  const sharmaPurchasesKey = `mtcc_purchases_MTCC-M-74891`;
+  if (!localStorage.getItem(sharmaPurchasesKey)) {
+    localStorage.setItem(sharmaPurchasesKey, JSON.stringify(DEFAULT_SEED_PURCHASES));
   }
   if (!localStorage.getItem(STORAGE_KEYS.ANNOUNCEMENTS)) {
     localStorage.setItem(STORAGE_KEYS.ANNOUNCEMENTS, JSON.stringify(DEFAULT_ANNOUNCEMENTS));
@@ -400,6 +593,244 @@ export function deleteMerchantCustomer(merchantId: string, customerId: string): 
   const customers = getMerchantCustomers(merchantId).filter((c) => c.id !== customerId);
   localStorage.setItem(`mtcc_customers_${merchantId}`, JSON.stringify(customers));
 }
+
+// Purchases (Isolated per merchantId)
+export function getMerchantPurchases(merchantId: string): Purchase[] {
+  if (!merchantId) return [];
+  try {
+    const raw = localStorage.getItem(`mtcc_purchases_${merchantId}`);
+    return raw ? JSON.parse(raw) : (merchantId === 'MTCC-M-74891' ? DEFAULT_SEED_PURCHASES : []);
+  } catch {
+    return [];
+  }
+}
+
+export function saveMerchantPurchase(merchantId: string, purchase: Purchase): void {
+  if (!merchantId) return;
+  const purchases = getMerchantPurchases(merchantId);
+  const index = purchases.findIndex((p) => p.id === purchase.id);
+  if (index >= 0) {
+    purchases[index] = purchase;
+  } else {
+    purchases.unshift(purchase);
+  }
+  localStorage.setItem(`mtcc_purchases_${merchantId}`, JSON.stringify(purchases));
+
+  // Auto-sync or create StockItems for purchased items if not existing
+  try {
+    const currentStockItems = getMerchantStockItems(merchantId);
+    let stockChanged = false;
+    for (const pItem of purchase.items) {
+      const matchIndex = currentStockItems.findIndex(
+        (s) => s.name.trim().toLowerCase() === pItem.name.trim().toLowerCase()
+      );
+      if (matchIndex >= 0) {
+        // Update purchase rate
+        if (pItem.purchaseRate > 0) {
+          currentStockItems[matchIndex].purchaseRate = pItem.purchaseRate;
+          if (pItem.suggestedSellingRate && pItem.suggestedSellingRate > 0) {
+            currentStockItems[matchIndex].sellingRate = pItem.suggestedSellingRate;
+          }
+          currentStockItems[matchIndex].updatedAt = new Date().toISOString();
+          stockChanged = true;
+        }
+      } else {
+        // New item auto-registered into catalog
+        currentStockItems.push({
+          id: `STK-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          merchantId,
+          name: pItem.name.trim(),
+          category: pItem.category || 'General',
+          unit: pItem.unit || 'Pcs',
+          openingStock: 0,
+          minStockAlert: 5,
+          purchaseRate: pItem.purchaseRate || 0,
+          sellingRate: pItem.suggestedSellingRate || Math.round(pItem.purchaseRate * 1.3),
+          notes: `Auto-cataloged from Purchase #${purchase.purchaseNumber}`,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        });
+        stockChanged = true;
+      }
+    }
+    if (stockChanged) {
+      localStorage.setItem(`mtcc_stock_${merchantId}`, JSON.stringify(currentStockItems));
+    }
+  } catch (err) {
+    console.error('Failed to auto-sync stock item from purchase', err);
+  }
+
+  // Log activity
+  logActivity({
+    id: `ACT-${Date.now()}`,
+    type: 'PAYMENT',
+    description: `Purchase #${purchase.purchaseNumber} recorded from ${purchase.supplierName} (₹${purchase.totalAmount.toLocaleString('en-IN')})`,
+    merchantId,
+    timestamp: new Date().toISOString(),
+    amount: purchase.totalAmount,
+  });
+}
+
+export function deleteMerchantPurchase(merchantId: string, purchaseId: string): void {
+  if (!merchantId) return;
+  const purchases = getMerchantPurchases(merchantId).filter((p) => p.id !== purchaseId);
+  localStorage.setItem(`mtcc_purchases_${merchantId}`, JSON.stringify(purchases));
+}
+
+// Master Stock Items / Products Catalog (Isolated per merchantId)
+export function getMerchantStockItems(merchantId: string): StockItem[] {
+  if (!merchantId) return [];
+  try {
+    const raw = localStorage.getItem(`mtcc_stock_${merchantId}`);
+    return raw ? JSON.parse(raw) : (merchantId === 'MTCC-M-74891' ? DEFAULT_SEED_STOCK_ITEMS : []);
+  } catch {
+    return [];
+  }
+}
+
+export function saveMerchantStockItem(merchantId: string, item: StockItem): void {
+  if (!merchantId) return;
+  const items = getMerchantStockItems(merchantId);
+  const index = items.findIndex((s) => s.id === item.id);
+  if (index >= 0) {
+    items[index] = { ...item, updatedAt: new Date().toISOString() };
+  } else {
+    items.unshift({ ...item, updatedAt: new Date().toISOString() });
+  }
+  localStorage.setItem(`mtcc_stock_${merchantId}`, JSON.stringify(items));
+}
+
+export function deleteMerchantStockItem(merchantId: string, itemId: string): void {
+  if (!merchantId) return;
+  const items = getMerchantStockItems(merchantId).filter((s) => s.id !== itemId);
+  localStorage.setItem(`mtcc_stock_${merchantId}`, JSON.stringify(items));
+}
+
+// Unified Stock Summary Computer (Opening + Purchases - Sales)
+export function computeMerchantStockSummary(merchantId: string): StockSummaryRecord[] {
+  if (!merchantId) return [];
+  const stockItems = getMerchantStockItems(merchantId);
+  const purchases = getMerchantPurchases(merchantId);
+  const invoices = getMerchantInvoices(merchantId);
+
+  const itemMap = new Map<string, {
+    id: string;
+    name: string;
+    category: string;
+    unit: string;
+    openingStock: number;
+    purchased: number;
+    sold: number;
+    minStockAlert: number;
+    purchaseRate: number;
+    sellingRate: number;
+    lastUpdated?: string;
+  }>();
+
+  // 1. Defined catalog items
+  for (const item of stockItems) {
+    const key = item.name.trim().toLowerCase();
+    itemMap.set(key, {
+      id: item.id,
+      name: item.name.trim(),
+      category: item.category || 'General',
+      unit: item.unit || 'Pcs',
+      openingStock: Number(item.openingStock) || 0,
+      purchased: 0,
+      sold: 0,
+      minStockAlert: item.minStockAlert ?? 5,
+      purchaseRate: Number(item.purchaseRate) || 0,
+      sellingRate: Number(item.sellingRate) || 0,
+      lastUpdated: item.updatedAt,
+    });
+  }
+
+  // 2. Accumulate Purchases
+  for (const pur of purchases) {
+    for (const pItem of pur.items) {
+      if (!pItem.name) continue;
+      const key = pItem.name.trim().toLowerCase();
+      if (!itemMap.has(key)) {
+        itemMap.set(key, {
+          id: `STK-AUTO-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          name: pItem.name.trim(),
+          category: pItem.category || 'General',
+          unit: pItem.unit || 'Pcs',
+          openingStock: 0,
+          purchased: 0,
+          sold: 0,
+          minStockAlert: 5,
+          purchaseRate: Number(pItem.purchaseRate) || 0,
+          sellingRate: Number(pItem.suggestedSellingRate) || Math.round((pItem.purchaseRate || 0) * 1.3),
+          lastUpdated: pur.date,
+        });
+      }
+      const record = itemMap.get(key)!;
+      record.purchased += (Number(pItem.quantity) || 0);
+      if (pItem.purchaseRate && (!record.purchaseRate || record.purchaseRate === 0)) {
+        record.purchaseRate = pItem.purchaseRate;
+      }
+    }
+  }
+
+  // 3. Accumulate Sales (Invoices)
+  for (const inv of invoices) {
+    for (const invItem of inv.items) {
+      if (!invItem.name) continue;
+      const key = invItem.name.trim().toLowerCase();
+      if (!itemMap.has(key)) {
+        itemMap.set(key, {
+          id: `STK-AUTO-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+          name: invItem.name.trim(),
+          category: 'Retail Sales',
+          unit: 'Pcs',
+          openingStock: 0,
+          purchased: 0,
+          sold: 0,
+          minStockAlert: 5,
+          purchaseRate: Math.round((invItem.rate || 0) * 0.7), // Est 30% margin
+          sellingRate: invItem.rate || 0,
+          lastUpdated: inv.date,
+        });
+      }
+      const record = itemMap.get(key)!;
+      record.sold += (Number(invItem.quantity) || 0);
+      if (invItem.rate && (!record.sellingRate || record.sellingRate === 0)) {
+        record.sellingRate = invItem.rate;
+      }
+    }
+  }
+
+  // 4. Transform to StockSummaryRecord
+  return Array.from(itemMap.values()).map((r) => {
+    const availableStock = r.openingStock + r.purchased - r.sold;
+    const stockValue = Math.max(0, availableStock) * (r.purchaseRate || 0);
+    let status: 'IN_STOCK' | 'LOW_STOCK' | 'OUT_OF_STOCK' = 'IN_STOCK';
+    if (availableStock <= 0) {
+      status = 'OUT_OF_STOCK';
+    } else if (availableStock <= r.minStockAlert) {
+      status = 'LOW_STOCK';
+    }
+
+    return {
+      id: r.id,
+      name: r.name,
+      category: r.category,
+      unit: r.unit,
+      openingStock: r.openingStock,
+      totalPurchased: r.purchased,
+      totalSold: r.sold,
+      availableStock,
+      minStockAlert: r.minStockAlert,
+      purchaseRate: r.purchaseRate,
+      sellingRate: r.sellingRate,
+      stockValue,
+      status,
+      lastUpdated: r.lastUpdated,
+    };
+  });
+}
+
 
 // Current Session
 export interface CurrentSession {
@@ -552,9 +983,9 @@ export const DEFAULT_WEBSITE_CONFIG: WebsiteConfig = {
   supportEmail: 'support@mtccbillpro.com',
   supportHours: 'Mon - Sat: 9:00 AM - 8:00 PM',
   officeAddress: 'Shop 14, MTCC Commercial Arcade, MG Road, Pune, Maharashtra - 411001',
-  registrationFee: 99,
+  registrationFee: 19,
   logoUrl: '',
-  bannerText: '🔥 One-Time Merchant Registration – Only ₹99 Lifetime Access!',
+  bannerText: '🔥 One-Time Merchant Registration – Only ₹19 Lifetime Access!',
   adminUpiId: 'mtccbillpro@icici',
   adminUpiPayeeName: 'MTCC BillPro Payments',
   adminCustomQrUrl: '',
@@ -566,7 +997,17 @@ export function getWebsiteConfig(): WebsiteConfig {
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.WEBSITE_CONFIG);
     if (!raw) return DEFAULT_WEBSITE_CONFIG;
-    return { ...DEFAULT_WEBSITE_CONFIG, ...JSON.parse(raw) };
+    const parsed = JSON.parse(raw);
+    const config: WebsiteConfig = { ...DEFAULT_WEBSITE_CONFIG, ...parsed };
+    // Auto-migrate if stored fee was previously 99
+    if (config.registrationFee === 99) {
+      config.registrationFee = 19;
+      if (config.bannerText && config.bannerText.includes('99')) {
+        config.bannerText = config.bannerText.replace('99', '19');
+      }
+      saveWebsiteConfig(config);
+    }
+    return config;
   } catch {
     return DEFAULT_WEBSITE_CONFIG;
   }
@@ -652,7 +1093,7 @@ export function createMerchantByAdmin(merchantData: Partial<Merchant>): Merchant
     description: `Admin created merchant account for ${newMerchant.businessName} (${newMerchant.id})`,
     merchantId: newMerchant.id,
     timestamp: new Date().toISOString(),
-    amount: 99,
+    amount: getWebsiteConfig().registrationFee || 19,
   });
 
   return newMerchant;

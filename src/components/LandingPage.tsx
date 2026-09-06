@@ -41,7 +41,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 }) => {
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  const regFee = websiteConfig.registrationFee || 99;
+  const regFee = websiteConfig.registrationFee || 19;
   const banner = websiteConfig.bannerText || `🔥 Merchant Registration – Only ₹${regFee} One-Time`;
 
   const faqs = [
@@ -50,8 +50,8 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       a: 'MTCC BillPro is custom-crafted specifically for small retailers, service centers, tutors, freelancers, traders, and contractors whose annual turnover is exempt from GST registration. There are NO confusing GSTIN, CGST, SGST, IGST, or HSN tax calculations. It generates clean, legal "Bill of Supply" and retail cash memos effortlessly.',
     },
     {
-      q: 'Is ₹99 really a one-time fee with no monthly charges?',
-      a: 'Yes, 100%! You pay ₹99 once during merchant registration, and your merchant account is activated for lifetime usage. There are NO monthly fees, NO annual renewal fees, and NO per-invoice charges.',
+      q: `Is ₹${regFee} really a one-time fee with no monthly charges?`,
+      a: `Yes, 100%! You pay ₹${regFee} once during merchant registration, and your merchant account is activated for lifetime usage. There are NO monthly fees, NO annual renewal fees, and NO per-invoice charges.`,
     },
     {
       q: 'Can I print on standard thermal POS printers (58mm and 80mm)?',
@@ -123,7 +123,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={onRegisterClick}
               className="w-full sm:w-auto py-4 px-8 rounded-2xl bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 text-slate-950 font-black text-base shadow-2xl shadow-amber-500/25 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-2.5 cursor-pointer"
             >
-              <span>Register for ₹99</span>
+              <span>Register for ₹{regFee}</span>
               <ArrowRight className="w-5 h-5 stroke-[3]" />
             </button>
 
@@ -267,9 +267,9 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="w-10 h-10 rounded-full bg-amber-500 text-slate-950 font-black flex items-center justify-center mx-auto text-sm">
               1
             </div>
-            <h3 className="font-bold text-white text-base">Register for ₹99</h3>
+            <h3 className="font-bold text-white text-base">Register for ₹{regFee}</h3>
             <p className="text-xs text-slate-400">
-              Pay ₹99 once via UPI, Card, or NetBanking to activate your lifetime merchant ID immediately.
+              Pay ₹{regFee} once via UPI, Card, or NetBanking to activate your lifetime merchant ID immediately.
             </p>
           </div>
 
@@ -304,7 +304,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Unbeatable Transparency
             </span>
             <h2 className="text-3xl sm:text-4xl font-black text-white">
-              Lifetime Billing Access for Just <span className="text-amber-400">₹99</span>
+              Lifetime Billing Access for Just <span className="text-amber-400">₹{regFee}</span>
             </h2>
             <p className="text-xs text-slate-300">
               Why pay ₹5,000 to ₹12,000 every year to bloated billing software when you only need fast Non-GST bills?

@@ -40,6 +40,7 @@ export const BusinessSettings: React.FC<BusinessSettingsProps> = ({
   const [defaultTerms, setDefaultTerms] = useState(merchant.defaultTerms || '');
   const [upiId, setUpiId] = useState(merchant.upiId || '');
   const [signatureText, setSignatureText] = useState(merchant.signatureText || '');
+  const [signatoryTitle, setSignatoryTitle] = useState(merchant.signatoryTitle || 'Authorized Signatory');
   const [logoUrl, setLogoUrl] = useState(merchant.logoUrl || '');
   const [signatureUrl, setSignatureUrl] = useState(merchant.signatureUrl || '');
   const [template, setTemplate] = useState<InvoiceTemplateId>(merchant.template || 'navy-gold');
@@ -121,6 +122,7 @@ export const BusinessSettings: React.FC<BusinessSettingsProps> = ({
       defaultTerms: defaultTerms.trim(),
       upiId: upiId.trim(),
       signatureText: signatureText.trim(),
+      signatoryTitle: signatoryTitle.trim(),
       logoUrl,
       signatureUrl,
       template,
@@ -322,15 +324,27 @@ export const BusinessSettings: React.FC<BusinessSettingsProps> = ({
               </span>
             </div>
 
-            <div>
-              <label className="text-[11px] text-slate-400 block mb-1">Authorized Signatory Text</label>
-              <input
-                type="text"
-                value={signatureText}
-                onChange={(e) => setSignatureText(e.target.value)}
-                placeholder="e.g. Rajesh Sharma (Proprietor)"
-                className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500"
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+              <div>
+                <label className="text-[11px] text-slate-400 block mb-1">Authorized Signatory Name / Text</label>
+                <input
+                  type="text"
+                  value={signatureText}
+                  onChange={(e) => setSignatureText(e.target.value)}
+                  placeholder="e.g. Rajesh Sharma"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] text-slate-400 block mb-1">Signatory Title / Designation (পদবী)</label>
+                <input
+                  type="text"
+                  value={signatoryTitle}
+                  onChange={(e) => setSignatoryTitle(e.target.value)}
+                  placeholder="e.g. Authorized Signatory, Proprietor, Manager"
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs sm:text-sm text-white focus:outline-none focus:border-amber-500"
+                />
+              </div>
             </div>
 
             {/* Template & Paper Defaults */}
